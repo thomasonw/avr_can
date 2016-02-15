@@ -1,4 +1,4 @@
-# avr_due
+# avr_can
 Object oriented canbus library for Atmel AVR CPUs used with the Arduino IDE.
 
 
