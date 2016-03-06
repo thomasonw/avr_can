@@ -1,54 +1,52 @@
-//Reads all traffic on CAN0 and forwards it to CAN1 (and in the reverse direction) but modifies some frames first.
-// Required libraries
-#include "variant.h"
-#include <due_can.h>
+//Sends a sample CAN message out. 
+//  Modified by Al Thomason for ATmegaxxM1 avr_CAN demo 2016
 
-//Leave defined if you use native port, comment if using programming port
-#define Serial SerialUSB
+#include <avr_can.h>
 
 void setup()
 {
 
   Serial.begin(115200);
   
-  // Initialize CAN0 and CAN1, Set the proper baud rates here
-  Can0.begin(CAN_BPS_250K);
-  Can1.begin(CAN_BPS_250K);
+  // Initialize CAN0 Set the proper baud rates here
   
-  Can0.watchFor();  
+    if (Can0.begin(CAN_BPS_250K)) 
+          Serial.println("Can Init OK");
+    else  Serial.println("Can Init FAILED");
+
 }
 
-void sendData()
+bool sendData()
 {
-	CAN_FRAME outgoing;
-	outgoing.id = 0x400;
-	outgoing.extended = false;
-	outgoing.priority = 4; //0-15 lower is higher priority
-	
-	outgoing.data.s0 = 0xFEED;
+    CAN_FRAME outgoing;
+    outgoing.id = 0x400;
+    outgoing.extended = false;
+    outgoing.priority = 4;                            //0-15 lower is higher priority
+    outgoing.length   = 8;
+    
+    outgoing.data.s0 = 0xFEED;
     outgoing.data.byte[2] = 0xDD;
-	outgoing.data.byte[3] = 0x55;
-	outgoing.data.high = 0xDEADBEEF;
-	Can0.sendFrame(outgoing);
+    outgoing.data.byte[3] = 0x55;
+    outgoing.data.high = millis();                  // Include a little changing data in each packet.
+    return(Can0.sendFrame(outgoing));               // Take note:  sendFrame() really only places the message into the outgoing queue,
+                                                    //             and will return TRUE if is succeeds.  This does NOT mean that the 
+                                                    //             message was actually  successfully sent at a later time.
 }
 
 void loop(){
-  CAN_FRAME incoming;
   static unsigned long lastTime = 0;
 
-  if (Can0.available() > 0) {
-	Can0.read(incoming);
-	Can1.sendFrame(incoming);
-   }
-  if (Can1.available() > 0) {
-	Can1.read(incoming);
-	Can0.sendFrame(incoming);
-  }
-
-  if ((millis() - lastTime) > 1000) 
+  if ((millis() - lastTime) > 500)                  // Send something out every 500mS
   {
      lastTime = millis();
-     sendData();    
+          
+     Serial.print((int) (millis()/1000));
+     Serial.print(" - Message sent");   
+
+    if (sendData())
+        Serial.println(" - OK");
+      else
+        Serial.println(" - Failed");
   }
 }
 

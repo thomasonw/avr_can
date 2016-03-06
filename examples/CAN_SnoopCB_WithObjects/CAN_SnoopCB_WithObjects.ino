@@ -1,18 +1,14 @@
-// Arduino Due - Displays all traffic found on either canbus port
+// Arduino Due - Displays all traffic found on  canbus port
 //Modified version of the SnooperCallback sketch. This one illustrates
 //how to use a class object to receive callbacks. It's a little different
 //from the non-OO approach.
 
 // By Thibaut Viard/Wilfredo Molina/Collin Kidder 2013-2015
+//  Modified by Al Thomason for ATmegaxxM1 avr_CAN demo 2016
 
-// Required libraries
-#include "variant.h"
-#include <due_can.h>
 
-//Leave defined if you use native port, comment if using programming port
-//This sketch could provide a lot of traffic so it might be best to use the
-//native port
-#define Serial SerialUSB
+#include <avr_can.h>
+
 
 class ExampleClass : public CANListener //CANListener provides an interface to get callbacks on this class
 {
@@ -54,22 +50,20 @@ void setup()
 
   Serial.begin(115200);
   
-  // Initialize CAN0, Set the proper baud rates here
-  // Pass the proper pin for enabling your transceiver or 255 if you don't need an enable pin to be toggled.
-  Can0.begin(CAN_BPS_500K, 50);
-  
-  //By default there are 7 RX mailboxes for each device
+   // Initialize CAN0, Set the proper baud rates here
+   Can0.init(CAN_BPS_250K);
+   Can0.setNumTXBoxes(0);                                               // Use all MOb (only 6x on the ATmegaxxM1 series) for receiving.
+ 
+
   //extended
-  //syntax is mailbox, ID, mask, extended
   Can0.setRXFilter(0, 0x2FF00, 0x1FF2FF00, true);
   Can0.setRXFilter(1, 0x1F0000, 0x1F1F0000, true);
-  Can0.setRXFilter(2, 0, 0, true); //catch all mailbox
+  Can0.setRXFilter(2, 0, 0, true);                                      //catch all mailbox
   
   //standard  
   Can0.setRXFilter(3, 0x40F, 0x7FF, false);
   Can0.setRXFilter(4, 0x310, 0x7F0, false);
-  Can0.setRXFilter(5, 0x200, 0x700, false);
-  Can0.setRXFilter(6, 0, 0, false); //catch all mailbox
+  Can0.setRXFilter(5, 0, 0, false);                                     //catch all mailbox
   
   Can0.attachObj(&myClass);
   //let library know we want to receive callbacks for the following mailboxes
@@ -79,7 +73,7 @@ void setup()
   myClass.attachMBHandler(1);
   myClass.attachMBHandler(3);
   myClass.attachMBHandler(4);
-  myClass.attachMBHandler(5);
+
   
   //set to get a callback for any other mailboxes not already covered above
   myClass.attachGeneralHandler();
