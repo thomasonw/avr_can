@@ -357,9 +357,11 @@ void CANRaw::disable_interrupt(uint8_t mb)
  *
  * \retval The internal CAN free-running timer counter.
  */
-uint32_t CANRaw::get_internal_timer_value()
+uint16_t CANRaw::get_internal_timer_value()
 {
-	   return ((CANTIMH<<8)+CANTIML);                       //was --> return (m_pCan->CAN_TIM);
+	   int t = CANTIML;                         //was --> return (m_pCan->CAN_TIM);
+	   t += (CANTIMH<<8);                       // Always read LOW then HIGH values of 16bit registers from AVR CPUs.
+       return(t);
 }
 
 /**
@@ -368,9 +370,11 @@ uint32_t CANRaw::get_internal_timer_value()
  *
  * \retval The timestamp value.
  */
-uint32_t CANRaw::get_timestamp_value()
+uint16_t CANRaw::get_timestamp_value()
 {
-	   return ((CANTTCH<<8)+CANTTCL);                       //was --> 	return (m_pCan->CAN_TIMESTP);
+       int t = CANTTCL;                         //was --> 	return (m_pCan->CAN_TIMESTP);
+	   t += (CANTTCH<<8);                       // Always read LOW then HIGH values of 16bit registers from AVR CPUs.
+       return(t);
 }
 
 /**
@@ -577,6 +581,9 @@ uint32_t CANRaw::mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe)
 	}
     rxframe->id = ul_id;
     rxframe->length = CANCDMOB & 0x0F;
+    rxframe->time   = CANSTML;
+    rxframe->time   += (CANSTMH<<8);                                     // Always read LOW then HIGH values of 16bit registers from AVR CPUs.
+    
                  
     for (uint8_t cnt = 0; cnt < 8; cnt++)                                // Fetch out all 8 bytes.  CANMSG index will auto-advance with each read.
     {    
@@ -730,7 +737,8 @@ void CANRaw::interruptHandler() {
 	uint16_t ul_status;
     int i;
  
-	ul_status = (CANSIT1 << 8) + CANSIT2;                      //get status of MOb interrupts
+	ul_status = CANSIT2;                                //get status of MOb interrupts
+	ul_status += (CANSIT1 << 8);                        //read 16bit regs low and then high in AVR CPUs.
     
     for (i=0; i<CANMB_QUANTITY; i++) {                      // Run through all Mailbox interupts looking for a bit that is set.
         if (ul_status & 0x01<<i)                            // If the mailbox has its IRQ bit set,
