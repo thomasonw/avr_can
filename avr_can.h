@@ -42,6 +42,7 @@
 #include <Arduino.h>
 
 
+#define CAN		Can0
 
 #define CAN0_EN  255 // Arduino port used for the CAN transceiver ENABLE signal.
                      // Set default  value = 255 to indicate there is no port being used, meaning the transceiver is
