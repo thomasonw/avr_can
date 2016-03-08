@@ -17,7 +17,7 @@
   
   
   Modifed by Al Thomason to support CAN enabled AVR CPUs:
-    ATmega32M1, ATmega64M1, AT90CAN???  (COMPLETE THIS LIST!!!)
+    ATmegaxxM1, ATmegaxxC, AT90CANxxx  
     See https://github.com/thomasonw/avr_can
 
   Based off of due_can library:  https://github.com/collin80/due_can
@@ -30,6 +30,7 @@
 
 #include "avr_can.h"
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
   
     
@@ -39,7 +40,7 @@
 *
 * \param En pin to use for transceiver enable
 */
-CANRaw::CANRaw(uint32_t En ) {
+CANRaw::CANRaw(uint8_t En ) {
 	enablePin = En;
 	bigEndian = false;
 	busSpeed = 0;
@@ -54,40 +55,38 @@ CANRaw::CANRaw(uint32_t En ) {
  *
  * \retval Set the baudrate successfully or not.
  */
-uint32_t CANRaw::set_baudrate(uint32_t ul_baudrate)
+uint8_t CANRaw::set_baudrate(uint8_t ub_baudrate)
 { 
-    uint8_t i;
-
-    for (i=0; i < ((sizeof(can_bit_time) / sizeof(can_bit_time[0]))); i++) {
-        if (ul_baudrate == can_bit_time[i].baudrate) {
-                  CANBT1 = can_bit_time[i].canbt1;                      // Found the 'speed', now just set up the registers.
-                  CANBT2 = can_bit_time[i].canbt2;
-                  CANBT3 = can_bit_time[i].canbt3;
-                  return 1;
-        } 
-    }
-  
-	return 0;
+    if (ub_baudrate > CAN_BPS_MAX)
+        return 0;
+    
+    busSpeed = ub_baudrate;
+    
+    CANBT1 = pgm_read_byte(&can_bit_time[ub_baudrate][0]);                  
+    CANBT2 = pgm_read_byte(&can_bit_time[ub_baudrate][1]);  
+    CANBT3 = pgm_read_byte(&can_bit_time[ub_baudrate][2]);  
+    return 1;
+   
 }
 
 
-uint32_t CANRaw::begin()
+uint8_t CANRaw::begin()
 {
 	return init(CAN_DEFAULT_BAUD);
 }
 
-uint32_t CANRaw::begin(uint32_t ul_baudrate) 
+uint8_t CANRaw::begin(uint8_t ul_baudrate) 
 {
 	return init(ul_baudrate);
 }
 
-uint32_t CANRaw::begin(uint32_t ul_baudrate, uint8_t enablePin) 
+uint8_t CANRaw::begin(uint8_t ub_baudrate, uint8_t enablePin) 
 {
 	this->enablePin = enablePin;
-	return init(ul_baudrate);
+	return init(ub_baudrate);
 }
 
-uint32_t CANRaw::getBusSpeed()
+uint8_t CANRaw::getBusSpeed()
 {
 	return busSpeed;
 }
@@ -102,11 +101,10 @@ uint32_t CANRaw::getBusSpeed()
  *
  * \note PMC clock for CAN peripheral should be enabled before calling this function.
  */
-uint32_t CANRaw::init(uint32_t ul_baudrate)
+uint8_t CANRaw::init(uint8_t ub_baudrate)
 {
-	uint32_t ul_flag;
-	uint32_t ul_tick;
-	
+	uint8_t  ub_flag;
+
 	//there used to be code here to cause this function to not run if the hardware is already initialized. But,
 	//it can be helpful to reinitialize. For instance, if the bus rate was set improperly you might need to
 	//go back through this code to reset the hardware.
@@ -121,8 +119,8 @@ uint32_t CANRaw::init(uint32_t ul_baudrate)
 	}
 
 	/* Initialize the baudrate for CAN module. */
-	ul_flag = set_baudrate(ul_baudrate);
-	if (ul_flag == 0) {
+	ub_flag = set_baudrate(ub_baudrate);
+	if (ub_flag == 0) {
 		return 0;
 	}
 
@@ -139,14 +137,8 @@ uint32_t CANRaw::init(uint32_t ul_baudrate)
 
 	/* Enable the CAN controller. */
 	enable();
-    
-	/* Timeout or the CAN module has been synchronized with the bus. */
-	if (CAN_TIMEOUT == ul_tick) {
-		return 0;
-	} else {
-		busSpeed = ul_baudrate;
-		return busSpeed;
-	}
+	return ub_flag;
+	
 }
 
  /* \brief Initializes mailboxes to the requested mix of RX and TX boxes
@@ -159,9 +151,12 @@ uint32_t CANRaw::init(uint32_t ul_baudrate)
 int CANRaw::setNumTXBoxes(int txboxes) {
 	int c;
 
-	if (txboxes > CANMB_QUANTITY) txboxes = CANMB_QUANTITY;
-	if (txboxes < 0) txboxes = 0;
-	numTXBoxes = txboxes;
+    c = txboxes;
+	if (txboxes > CANMB_QUANTITY) c = CANMB_QUANTITY;
+	if (txboxes < 0)              c = 0;
+    
+    numTXBoxes = c;
+    
     
 	//Inialize remaining Mob as RX boxes
 	for (c = 0; c < CANMB_QUANTITY - numTXBoxes; c++) {
@@ -426,14 +421,9 @@ void CANRaw::mailbox_init(uint8_t uc_index)
      CANIDM2  = 0;
      CANIDM3  = 0;
      CANIDM4  = 0;
-     CANMSG   = 0;                                                      //was --> 	m_pCan->CAN_MB[uc_index].CAN_MID = 0;
-     CANMSG   = 0;                                                      //was --> 	m_pCan->CAN_MB[uc_index].CAN_MDL = 0;
-     CANMSG   = 0;                                                      //was --> 	m_pCan->CAN_MB[uc_index].CAN_MDH = 0;
-     CANMSG   = 0;                                                      // Need to send out 0 8x times to clear all of the data registers for the Mob
-     CANMSG   = 0;                                                      // Note Auto-increment of data pointer was set by mailbox_set_MOb_index
-     CANMSG   = 0; 
-     CANMSG   = 0; 
-     CANMSG   = 0; 
+ 
+     for (uint8_t cnt = 0; cnt < 8; cnt++)                              // Need to send out 0 8x times to clear all of the data registers for the Mob
+         CANMSG = 0;                                                    // Note Auto-increment of data pointer was set by mailbox_set_MOb_index
      
     CANSTMOB  = 0;                                                      //was --> 	m_pCan->CAN_MB[uc_index].CAN_MCR = 0;
     
@@ -565,7 +555,7 @@ bool CANRaw::sendFrame(CAN_FRAME& txFrame)
  * \retval Different CAN mailbox transfer status.
  *
  */
-uint32_t CANRaw::mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe)
+uint8_t CANRaw::mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe)
 {
     uint32_t ul_id;
     
@@ -665,7 +655,7 @@ void CANRaw::mailbox_set_accept_mask(uint8_t uc_index, uint32_t mask, bool exten
  * \retval CAN_MAILBOX_NOT_READY: Failed because mailbox isn't ready for transmitting message.
  *         CAN_MAILBOX_TRANSFER_OK: Successfully send out a frame.
  */
-uint32_t CANRaw::mailbox_tx_frame(uint8_t uc_index)
+uint8_t CANRaw::mailbox_tx_frame(uint8_t uc_index)
 {
 	mailbox_set_MOb_index(uc_index);                                        // Select Mob, set data index = 0 w/auto increment of message reg pointer..
 
@@ -707,7 +697,7 @@ bool CANRaw::rx_avail() {
 }
 
 //wrapper for syntactic sugar reasons - could have just been a #define
-uint32_t CANRaw::read(CAN_FRAME & buffer) 
+uint8_t CANRaw::read(CAN_FRAME & buffer) 
 {
 	return get_rx_buff(buffer);
 }
@@ -719,7 +709,7 @@ uint32_t CANRaw::read(CAN_FRAME & buffer)
  *
  * \retval 0 no frames waiting to be received, 1 if a frame was returned
  */
-uint32_t CANRaw::get_rx_buff(CAN_FRAME& buffer) {
+uint8_t CANRaw::get_rx_buff(CAN_FRAME& buffer) {
 	if (rx_buffer_head == rx_buffer_tail) return 0;
 	buffer.id = rx_frame_buff[rx_buffer_tail].id;
 	buffer.extended = rx_frame_buff[rx_buffer_tail].extended;

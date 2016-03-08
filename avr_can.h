@@ -17,7 +17,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
   Modifed by Al Thomason to support CAN enabled AVR CPUs:
-    ATmega32M1, ATmega64M1, AT90CAN???  (tbd: COMPLETE THIS LIST!!!)
+    ATmegaxxM1, ATmegaxxC, AT90CANxxx  
     See https://github.com/thomasonw/avr_can
 
   Based off of due_can library:  https://github.com/collin80/due_can
@@ -40,7 +40,7 @@
 #define _CAN_LIBRARY_
 
 #include <Arduino.h>
-
+#include <avr/pgmspace.h>
 
 #define CAN		Can0
 
@@ -158,18 +158,21 @@
 
 
 /** Define the typical baudrate for CAN communication in KHz. */
-  #define CAN_BPS_1000K                 1000000
-//#define CAN_BPS_800K                  800000
-  #define CAN_BPS_500K                  500000
-  #define CAN_BPS_250K                  250000
-  #define CAN_BPS_125K                  125000
-  #define CAN_BPS_100K                  100000
-//#define CAN_BPS_50K                   50000
-//#define CAN_BPS_33333				  33333
-//#define CAN_BPS_25K                   25000
-//#define CAN_BPS_10K                   10000
-//#define CAN_BPS_5K                    5000
 
+//#define CAN_BPS_5K                    -
+//#define CAN_BPS_10K                   - 
+//#define CAN_BPS_25K                   - 
+//#define CAN_BPS_33333				    -
+//#define CAN_BPS_50K                   - 
+  #define CAN_BPS_100K                  0
+  #define CAN_BPS_125K                  1
+  #define CAN_BPS_200K                  2
+  #define CAN_BPS_250K                  3
+  #define CAN_BPS_500K                  4
+//#define CAN_BPS_800K                  - 
+  #define CAN_BPS_1000K                 5
+  #define CAN_BPS_MAX       CAN_BPS_1000K 
+  
 #define CAN_DEFAULT_BAUD	CAN_BPS_250K
 
 //  Note:  Am not really happy about how this set_baud_rate function is configured, with this large table..  
@@ -186,30 +189,30 @@ typedef struct {
 
 /** Values of bit time register for different baudrates and different CPU frequencies.  */
 
-const can_bit_timing_t can_bit_time[] = {
+const uint8_t can_bit_time[CAN_BPS_MAX+1][3] PROGMEM  = {
     #if F_CPU == 16000000                 //< Fclkio = 16 MHz, Tclkio = 62.5 ns
-        {100000ul,  0x12, 0x0C, 0x37},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
-        {125000ul,  0x0E, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
-        {200000ul,  0X08, 0x0C, 0x37},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
-        {250000ul,  0x06, 0x0C, 0x37},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
-        {500000ul,  0x06, 0x04, 0x13},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
-        {1000000ul, 0x02, 0x04, 0x13}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
+        {0x12, 0x0C, 0x37},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
+        {0x0E, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
+        {0X08, 0x0C, 0x37},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
+        {0x06, 0x0C, 0x37},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
+        {0x06, 0x04, 0x13},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
+        {0x02, 0x04, 0x13}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
         
     #elif F_CPU == 12000000              //< Fclkio = 12 MHz, Tclkio = 83.333 ns
-        {100000ul,  0x0A, 0x0E, 0x4B},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
-        {125000ul,  0x0A, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
-        {200000ul,  0X04, 0x0E, 0x4B},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
-        {250000ul,  0x04, 0x0C, 0x37},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
-        {500000ul,  0x02, 0x08, 0x25},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
-        {1000000ul, 0x00, 0x08, 0x25}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
+        {0x0A, 0x0E, 0x4B},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
+        {0x0A, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
+        {0X04, 0x0E, 0x4B},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
+        {0x04, 0x0C, 0x37},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
+        {0x02, 0x08, 0x25},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
+        {0x00, 0x08, 0x25}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
         
        #elif F_CPU == 8000000              //< Fclkio = 8 MHz, Tclkio = 125 ns
-        {100000ul,  0x08, 0x0C, 0x37},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
-        {125000ul,  0x06, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
-        {200000ul,  0X02, 0x0E, 0x4B},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
-        {250000ul,  0x02, 0x0C, 0x0C},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
-        {500000ul,  0x02, 0x04, 0x04},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
-        {1000000ul, 0x00, 0x04, 0x13}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
+        {0x08, 0x0C, 0x37},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
+        {0x06, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
+        {0X02, 0x0E, 0x4B},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
+        {0x02, 0x0C, 0x0C},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
+        {0x02, 0x04, 0x04},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
+        {0x00, 0x04, 0x13}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
         
     #else      
         #error CPU Frequency F_CPU value not supported in avr_can.h
@@ -284,7 +287,7 @@ class CANRaw
 	void mailbox_int_handler(uint8_t mb);
 
 	uint8_t enablePin;
-	uint32_t busSpeed;                                                  //what speed is the bus currently initialized at? 0 if it is off right now
+	uint8_t busSpeed;                                                  //what speed is the bus currently initialized at? 0 if it is off right now
 	
 	uint32_t write_id;                                                  //public storage for an id. Will be used by the write function to set which ID to send to.
 	bool bigEndian; 
@@ -310,17 +313,17 @@ class CANRaw
   public:
 
     // Constructor
-    CANRaw(uint32_t En);
+    CANRaw(uint8_t En);
 
     
-    uint32_t begin();
-	uint32_t begin(uint32_t ul_baudrate);
-	uint32_t begin(uint32_t ul_baudrate, uint8_t enablePin);
-	uint32_t init(uint32_t ul_baudrate);
+    uint8_t begin();
+	uint8_t begin(uint8_t ul_baudrate);
+	uint8_t begin(uint8_t ul_baudrate, uint8_t enablePin);
+	uint8_t init (uint8_t ul_baudrate);
 
     
-	uint32_t set_baudrate(uint32_t ul_baudrate);
-	uint32_t getBusSpeed();
+	uint8_t set_baudrate(uint8_t ul_baudrate);
+	uint8_t getBusSpeed();
 
 	void enable();
 	void disable();
@@ -339,8 +342,8 @@ class CANRaw
 
 	bool rx_avail();
 	int available();                                                //like rx_avail but returns the number of waiting frames
-	uint32_t get_rx_buff(CAN_FRAME &);
-	uint32_t read(CAN_FRAME &);
+	uint8_t get_rx_buff(CAN_FRAME &);
+	uint8_t read(CAN_FRAME &);
 	bool sendFrame(CAN_FRAME& txFrame);
     
  	uint8_t  get_tx_error_cnt();
@@ -396,8 +399,8 @@ class CANRaw
     void set_timestamp_capture_point(uint32_t ul_flag);
     void mailbox_init(uint8_t uc_index); 
 
-    uint32_t mailbox_tx_frame(uint8_t uc_index);
-    uint32_t mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe);
+    uint8_t mailbox_tx_frame(uint8_t uc_index);
+    uint8_t mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe);
      
        
        
@@ -433,8 +436,6 @@ class CANRaw
 	void mailbox_send_transfer_cmd(uint8_t uc_index);
 	void mailbox_send_abort_cmd(uint8_t uc_index);
 	void mailbox_init(uint8_t uc_index);
-	uint32_t mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe);
-	uint32_t mailbox_tx_frame(uint8_t uc_index);
 	void mailbox_set_id(uint8_t uc_index, uint32_t id, bool extended);
   // void mailbox_set_priority(uint8_t uc_index, uint8_t pri);          // REDACTED
 
