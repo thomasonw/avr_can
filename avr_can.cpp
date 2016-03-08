@@ -148,8 +148,8 @@ uint8_t CANRaw::init(uint8_t ub_baudrate)
  * \retval number of tx boxes set.
  *
  */
-int CANRaw::setNumTXBoxes(int txboxes) {
-	int c;
+uint8_t CANRaw::setNumTXBoxes(uint8_t txboxes) {
+	uint8_t c;
 
     c = txboxes;
 	if (txboxes > CANMB_QUANTITY) c = CANMB_QUANTITY;

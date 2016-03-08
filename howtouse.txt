@@ -108,7 +108,7 @@ Example: Can0.setNumTXBoxes(2);  setNumTXBoxes() returns the actual number of ma
 for transmitting, up to and including the entire number of maibboxes on the hardware.  As
 different hardware can have different number of physical mailboxes, one way to determine this is
 to call setNumTXBoxes() with a large number and the actual physical count will be returned.  
-  Example:  int numMBx = setNumTXBoxes(999);			// How many are there?
+  Example:  int numMBx = setNumTXBoxes(99);			// How many are there?
 			 setNumTXBoxes(numMBx/2);		// Set half of them for TX.
 You can then recall setNumTXBoxes with the actual number of boxes you wish to use for Tx.
 

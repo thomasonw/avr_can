@@ -274,25 +274,25 @@ private:
 class CANRaw
 {
   protected:
-	int numTXBoxes;  //Contains number of Mobs we have been asked to use for TX.  
+	uint8_t numTXBoxes;  //Contains number of Mobs we have been asked to use for TX.  
 	
   private:
 	/* CAN peripheral, set by constructor */
 	volatile CAN_FRAME rx_frame_buff[SIZE_RX_BUFFER];
 	volatile CAN_FRAME tx_frame_buff[SIZE_TX_BUFFER];
 
-	volatile uint16_t rx_buffer_head, rx_buffer_tail;
-    volatile uint16_t tx_buffer_head, tx_buffer_tail;
+	volatile uint8_t rx_buffer_head, rx_buffer_tail;
+    volatile uint8_t tx_buffer_head, tx_buffer_tail;
     
 	void mailbox_int_handler(uint8_t mb);
 
 	uint8_t enablePin;
-	uint8_t busSpeed;                                                  //what speed is the bus currently initialized at? 0 if it is off right now
+	uint8_t busSpeed;                                                   //what speed is the bus currently initialized at? 0 if it is off right now
 	
 	uint32_t write_id;                                                  //public storage for an id. Will be used by the write function to set which ID to send to.
 	bool bigEndian; 
     
-    uint32_t RXIDFilterSave[CANMB_QUANTITY];                             // CAN ID Mask registers are overwritten with incomming message IDs, need to save values to reinitialize
+    uint32_t RXIDFilterSave[CANMB_QUANTITY];                            // CAN ID Mask registers are overwritten with incomming message IDs, need to save values to reinitialize
 
 	void (*cbCANFrame[CANMB_QUANTITY+1])(CAN_FRAME *);                  //Call-Back function pointer array - max mailboxes plus an optional catch all
 	CANListener *listener[SIZE_LISTENERS];	
@@ -329,7 +329,7 @@ class CANRaw
 	void disable();
 	void reset_all_mailbox();
 
-    int setNumTXBoxes(int txboxes);
+    uint8_t setNumTXBoxes(uint8_t txboxes);
 
 	int watchFor();                                 //allow anything through
 	int watchFor(uint32_t id);                      //allow just this ID through (automatic determination of extended status)

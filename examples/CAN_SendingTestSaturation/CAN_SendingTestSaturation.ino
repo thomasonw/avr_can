@@ -15,7 +15,7 @@ void setup()
     else  Serial.println("Can Init FAILED");
 
     
-     Serial.print(Can0.setNumTXBoxes(999));             // Setup all the MObs for transmitting. 
+     Serial.print(Can0.setNumTXBoxes(99));              // Setup all the MObs for transmitting. 
      Serial.println(" Tx mailboxes setup.");
      
      
