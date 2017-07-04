@@ -971,6 +971,7 @@ void CANRaw::mailbox_int_handler(uint8_t mb) {
                          
     } else if (CANSTMOB & (1<<TXOK)) {                                                      // Something just transmitted.
                CANSTMOB &= ~(1<<TXOK);                                                       // Clear the Tx interupt flag
+               CANCDMOB = 0;  								    //   ... and the controller reg.
          	if (tx_buffer_head != tx_buffer_tail) 
 			{ //if there is a frame in the queue to send - refill this now empty MOb and start sending.
 				mailbox_set_id(mb, tx_frame_buff[tx_buffer_head].id, tx_frame_buff[tx_buffer_head].extended);
