@@ -13,3 +13,13 @@ Note:  To date only limited testing has been performed using the ATmega64M1 cont
 
 Reference:  This is a porting of the CAN_DUE library at: 
   https://github.com/collin80/due_can
+  
+  
+  =============================================
+  
+  
+NOTE:  The current version of this lib has been made generic by removing all Arduino specific code.  As a result, this lib no longer manages the Transceiver Enable/Stby port, you will need to do that directly (if used).  
+
+  A snap-shot of the Arduino version with the Enable/stby pin support may be found under the RELEASED tab.
+
+

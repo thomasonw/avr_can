@@ -30,18 +30,15 @@
 
 #include "avr_can.h"
 #include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-
+#include <string.h>
   
     
 
 /**
 * \brief constructor for the class
 *
-* \param En pin to use for transceiver enable
 */
-CANRaw::CANRaw(uint8_t En ) {
-	enablePin = En;
+CANRaw::CANRaw() {
 	bigEndian = false;
 	busSpeed = 0;
 	
@@ -80,12 +77,6 @@ uint8_t CANRaw::begin(uint8_t ul_baudrate)
 	return init(ul_baudrate);
 }
 
-uint8_t CANRaw::begin(uint8_t ub_baudrate, uint8_t enablePin) 
-{
-	this->enablePin = enablePin;
-	return init(ub_baudrate);
-}
-
 uint8_t CANRaw::getBusSpeed()
 {
 	return busSpeed;
@@ -113,12 +104,7 @@ uint8_t CANRaw::init(uint8_t ub_baudrate)
 	for (int i = 0; i < CANMB_QUANTITY+1; i++) cbCANFrame[i] = 0;
 
 
-	if (enablePin != 255) {
-		pinMode(enablePin, OUTPUT);
-		digitalWrite(enablePin, HIGH);
-	}
-
-	/* Initialize the baudrate for CAN module. */
+		/* Initialize the baudrate for CAN module. */
 	ub_flag = set_baudrate(ub_baudrate);
 	if (ub_flag == 0) {
 		return 0;
@@ -135,7 +121,7 @@ uint8_t CANRaw::init(uint8_t ub_baudrate)
 	//By default use one mailbox for TX 
 	setNumTXBoxes(1);
 
-	/* Enable the CAN controller. */
+    /* Enable the CAN controller. */
 	enable();
 	return ub_flag;
 	
@@ -213,7 +199,7 @@ void CANRaw::detachCANInterrupt(uint8_t mailBox)
 	cbCANFrame[mailBox] = 0;
 }
 
-boolean CANRaw::attachObj(CANListener *listener)
+bool CANRaw::attachObj(CANListener *listener)
 {
 	for (int i = 0; i < SIZE_LISTENERS; i++)
 	{
@@ -227,7 +213,7 @@ boolean CANRaw::attachObj(CANListener *listener)
 	return false;
 }
 
-boolean CANRaw::detachObj(CANListener *listener)
+bool CANRaw::detachObj(CANListener *listener)
 {
 	for (int i = 0; i < SIZE_LISTENERS; i++)
 	{
@@ -240,6 +226,7 @@ boolean CANRaw::detachObj(CANListener *listener)
 	return false;  
 }
 
+
 /**
  * \brief Enable CAN Controller.
  *
@@ -247,7 +234,6 @@ boolean CANRaw::detachObj(CANListener *listener)
 void CANRaw::enable()
 {
 	CANGCON |=  (1<<ENASTB);                                //Start up the CAN module
-	if (enablePin != 255) digitalWrite(enablePin, HIGH);
 }
 
 /**
@@ -257,7 +243,6 @@ void CANRaw::enable()
 void CANRaw::disable()
 {                                                           //review --> Should I also set the ABRQ bit?
 	CANGCON &= ~(1<<ENASTB);                                //was --> m_pCan->CAN_MR &= ~CAN_MR_CANEN;
-	if (enablePin != 255) digitalWrite(enablePin, LOW);
 }
 
 
@@ -588,7 +573,7 @@ uint8_t CANRaw::mailbox_read(uint8_t uc_index, volatile CAN_FRAME *rxframe)
  *
  * \param uc_index The mailbox to set (0-7)
  * \param id The ID to set (11 or 29 bit)
- * \param extended Boolean indicating if this ID should be designated as extended
+ * \param extended bool indicating if this ID should be designated as extended
  *
  */
 void CANRaw::mailbox_set_id(uint8_t uc_index, uint32_t id, bool extended) 
@@ -908,7 +893,7 @@ int CANRaw::watchForRange(uint32_t id1, uint32_t id2)
 void CANRaw::mailbox_int_handler(uint8_t mb) {
     
 	CAN_FRAME tempFrame;
-	boolean caughtFrame = false;
+	bool caughtFrame = false;
 	CANListener *thisListener;
 	if (mb > (CANMB_QUANTITY-1)) mb = (CANMB_QUANTITY-1);
 
@@ -1044,13 +1029,13 @@ void CANListener::detachGeneralHandler()
 /**
  * \brief Interrupt dispatcher - Never directly call these
  *
- * \note This function is needed because interrupt handlers cannot be part of a class
+ * \note These function are needed because interrupt handlers cannot be part of a class
  */
 
 ISR(CAN_INT_vect)
 // void CAN0_Handler(void)
 {
-    uint8_t savedMOB;                   // Save and restore this index value, incase interupt occured during ongoing operation..
+    uint8_t savedMOB;                   // Save and restore the index value, in case interupt occured during an ongoing operation..
 
     savedMOB = CANPAGE;
     Can0.interruptHandler();
@@ -1066,7 +1051,7 @@ ISR(CAN_TOVF_vect)
 
 
 /// instantiate the canbus adapter
-CANRaw Can0(CAN0_EN);
-//CANRaw Can0(CAN0, CAN0_EN);
+CANRaw Can0;
+
 
 

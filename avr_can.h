@@ -39,15 +39,10 @@
 #ifndef _CAN_LIBRARY_
 #define _CAN_LIBRARY_
 
-#include <Arduino.h>
 #include <avr/pgmspace.h>
 
 #define CAN		Can0
-
-#define CAN0_EN  255 // Arduino port used for the CAN transceiver ENABLE signal.
-                     // Set default  value = 255 to indicate there is no port being used, meaning the transceiver is
-                     // assumed by default to always be enabled.  Pass in a different port value into the :begin() function if needed.
-
+#define NULL    0
 
 /**  Some CPU specific selections, device at compile time based on targeted CPU  */
 /** How many mailboxes are contained in the hardware?  (due had 8x) */ 
@@ -286,7 +281,6 @@ class CANRaw
     
 	void mailbox_int_handler(uint8_t mb);
 
-	uint8_t enablePin;
 	uint8_t busSpeed;                                                   //what speed is the bus currently initialized at? 0 if it is off right now
 	
 	uint32_t write_id;                                                  //public storage for an id. Will be used by the write function to set which ID to send to.
@@ -313,20 +307,19 @@ class CANRaw
   public:
 
     // Constructor
-    CANRaw(uint8_t En);
+    CANRaw();
 
     
     uint8_t begin();
 	uint8_t begin(uint8_t ul_baudrate);
-	uint8_t begin(uint8_t ul_baudrate, uint8_t enablePin);
 	uint8_t init (uint8_t ul_baudrate);
 
+ 	void enable(); 
+	void disable();
     
 	uint8_t set_baudrate(uint8_t ul_baudrate);
 	uint8_t getBusSpeed();
 
-	void enable();
-	void disable();
 	void reset_all_mailbox();
 
     uint8_t setNumTXBoxes(uint8_t txboxes);
@@ -371,8 +364,8 @@ class CANRaw
 	void detachCANInterrupt(uint8_t mailBox);
 	
 	//now, object oriented versions to make OO projects easier
-	boolean attachObj(CANListener *listener);
-	boolean detachObj(CANListener *listener);
+	bool attachObj(CANListener *listener);
+	bool detachObj(CANListener *listener);
 
     
     void interruptHandler();
@@ -426,6 +419,8 @@ class CANRaw
 	void disable_interrupt(uint32_t dw_mask);
 	uint32_t get_interrupt_mask();
 	uint32_t get_status();
+    
+    uint8_t begin(uint8_t ul_baudrate, uint8_t enablePin);
 
 	void reset_internal_timer();
     	uint32_t getMailboxIer(int8_t mailbox);
