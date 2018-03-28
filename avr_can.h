@@ -205,9 +205,9 @@ const uint8_t can_bit_time[CAN_BPS_MAX+1][3] PROGMEM  = {
         {0x08, 0x0C, 0x37},                //< -- 100Kb/s, 16x Tscl, sampling at 75%
         {0x06, 0x0C, 0x37},                //< -- 125Kb/s, 16x Tscl, sampling at 75%
         {0X02, 0x0E, 0x4B},                //< -- 200Kb/s, 16x Tscl, sampling at 75%
-        {0x02, 0x0C, 0x0C},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
-        {0x02, 0x04, 0x04},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
-        {0x00, 0x04, 0x13}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
+        {0x02, 0x0C, 0x37},                //< -- 250Kb/s, 16x Tscl, sampling at 75%
+        {0x02, 0x04, 0x13},                //< -- 500Kb/s,  8x Tscl, sampling at 75%
+        {0x00, 0x04, 0x12}                 //< --  1 Mb/s,  8x Tscl, sampling at 75%   
         
     #else      
         #error CPU Frequency F_CPU value not supported in avr_can.h
