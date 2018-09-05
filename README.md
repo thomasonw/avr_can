@@ -1,6 +1,9 @@
 # avr_can
 Object oriented canbus library for Atmel AVR CPUs used with the Arduino IDE.
 
+https://github.com/thomasonw/avr_can
+
+
 
 This library supports the built in CAN hardware in some Atmet AVR chips.  It was ported from the existing due_can library and follows those APIs.  In this way applications within the Arduino IDE can be more universally written changing only the underlying library.
 
