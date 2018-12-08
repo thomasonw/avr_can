@@ -1032,6 +1032,11 @@ void CANListener::detachGeneralHandler()
  * \note These function are needed because interrupt handlers cannot be part of a class
  */
 
+ #ifdef CANINT_vect
+    #define CAN_INT_vect CANINT_vect                // AT90CANxxx has a typo in their defines.
+    #endif
+   
+    
 ISR(CAN_INT_vect)
 // void CAN0_Handler(void)
 {
