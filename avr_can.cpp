@@ -1048,6 +1048,11 @@ ISR(CAN_INT_vect)
 
 } 
 
+
+#ifdef OVRIT_vect
+    #define  CAN_TOVF_vect OVRIT_vect                           // Another delta in the AT90CAN CPU's definitions
+    #endif
+
 ISR(CAN_TOVF_vect)
 {                                                               // Should never get here, as Overlow interupts are not enabled - -
         CANGIT  |= (1<<OVRTIM);                                 // But if we do, simply ignore this error and reset things.
