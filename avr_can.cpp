@@ -1026,21 +1026,23 @@ void CANListener::detachGeneralHandler()
 }
 
 
+
+
+
+
 /**
  * \brief Interrupt dispatcher - Never directly call these
  *
  * \note These function are needed because interrupt handlers cannot be part of a class
  */
 
- #ifdef CANINT_vect
-    #define CAN_INT_vect CANINT_vect                // AT90CANxxx has a typo in their defines.
-    #endif
-   
-    
-ISR(CAN_INT_vect)
-// void CAN0_Handler(void)
+#ifdef AT90CAN
+	ISR(CANINT_vect)                                             // AT90CAN has slight delta in defs   
+#else
+	ISR(CAN_INT_vect)
+#endif   
 {
-    uint8_t savedMOB;                   // Save and restore the index value, in case interupt occured during an ongoing operation..
+    uint8_t savedMOB;                                           // Save and restore the index value, in case interupt occured during an ongoing operation..
 
     savedMOB = CANPAGE;
     Can0.interruptHandler();
@@ -1049,11 +1051,11 @@ ISR(CAN_INT_vect)
 } 
 
 
-#ifdef OVRIT_vect
-    #define  CAN_TOVF_vect OVRIT_vect                           // Another delta in the AT90CAN CPU's definitions
-    #endif
-
-ISR(CAN_TOVF_vect)
+#ifdef AT90CAN
+	ISR(OVRIT_vect)                                             // AT90CAN has slight delta in defs   
+#else
+	ISR(CAN_TOVF_vect)
+#endif
 {                                                               // Should never get here, as Overlow interupts are not enabled - -
         CANGIT  |= (1<<OVRTIM);                                 // But if we do, simply ignore this error and reset things.
 }
