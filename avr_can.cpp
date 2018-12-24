@@ -1036,8 +1036,10 @@ void CANListener::detachGeneralHandler()
  * \note These function are needed because interrupt handlers cannot be part of a class
  */
 
-#ifdef AT90CAN
-	ISR(CANINT_vect)                                             // AT90CAN has slight delta in defs   
+#if defined(__AVR_AT90CAN32__) || \
+    defined(__AVR_AT90CAN64__) || \
+    defined(__AVR_AT90CAN128__)
+	ISR(CANIT_vect)                                             // AT90CAN has slight delta in defs   
 #else
 	ISR(CAN_INT_vect)
 #endif   
@@ -1051,7 +1053,9 @@ void CANListener::detachGeneralHandler()
 } 
 
 
-#ifdef AT90CAN
+#if defined(__AVR_AT90CAN32__) || \
+    defined(__AVR_AT90CAN64__) || \
+    defined(__AVR_AT90CAN128__)
 	ISR(OVRIT_vect)                                             // AT90CAN has slight delta in defs   
 #else
 	ISR(CAN_TOVF_vect)
@@ -1064,6 +1068,3 @@ void CANListener::detachGeneralHandler()
 
 /// instantiate the canbus adapter
 CANRaw Can0;
-
-
-
