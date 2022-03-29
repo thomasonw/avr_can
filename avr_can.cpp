@@ -146,8 +146,11 @@ uint8_t CANRaw::setNumTXBoxes(uint8_t txboxes) {
     
 	//Inialize remaining Mob as RX boxes
 	for (c = 0; c < CANMB_QUANTITY - numTXBoxes; c++) {
-		mailbox_set_id(c, 0x0, false);
-		mailbox_set_accept_mask(c, 0x7FF, false);
+		//mailbox_set_id(c, 0x0, false);
+		//mailbox_set_accept_mask(c, 0x7FF, false);
+		
+		//Using mailbox_set_id and set mailbox_set_accept_mask did not allow setting mailboxes for a node to both send and receive frames.
+		setRXFilter(c, 0, 0, false); 
 	}
 
 	//Initialize TX boxes
